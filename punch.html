@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>PunchMeter Pro - Mobile</title>
+    <style>
+        /* Base de la page adaptée au tactile */
+        body { 
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif; 
+            text-align: center; 
+            background: #121212; 
+            color: #f0f0f0; 
+            padding: 10px;
+            margin: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent; /* Enlève le flash bleu au clic sur mobile */
+        }
+
+        /* Cartes responsives qui prennent toute la largeur disponible sur petit écran */
+        .card { 
+            background: #1e1e1e; 
+            padding: 20px 15px; 
+            border-radius: 16px; 
+            max-width: 100%; /* S'adapte aux grands téléphones */
+            margin: 12px auto; 
+            box-shadow: 0 4px 20px rgba(0,0,0,0.6); 
+            border: 1px solid #2a2a2a; 
+            box-sizing: border-box;
+        }
+
+        h1 { 
+            color: #00ffcc; 
+            margin-top: 0; 
+            font-size: 1.8rem; /* Titre plus grand et lisible */
+        }
+
+        h3 {
+            margin-top: 0;
+            font-size: 1.2rem;
+            color: #aaa;
+        }
+        
+        /* Conteneur de stats qui passe en colonne si l'écran est vraiment trop étroit */
+        .stats-container { 
+            display: flex; 
+            justify-content: space-around; 
+            align-items: center; 
+            margin: 25px 0; 
+        }
+
+        .score-box { 
+            flex: 1; 
+            padding: 0 5px;
+        }
+
+        .score-label { 
+            font-size: 0.8rem; 
+            color: #888; 
+            text-transform: uppercase; 
+            letter-spacing: 1px; 
+            margin-bottom: 5px;
+        }
+
+        /* Chiffres géants pour être vus de loin pendant l'entraînement */
+        .score { 
+            font-size: 4.5rem; 
+            font-weight: bold; 
+            color: #ff3366; 
+            line-height: 1;
+        }
+
+        .record { 
+            font-size: 3.5rem; 
+            font-weight: bold; 
+            color: #ffcc00; 
+            line-height: 1;
+        }
+
+        /* Formulaires et listes adaptés aux doigts (gros boutons/zones de clic) */
+        label { 
+            display: block; 
+            margin: 18px 0 8px; 
+            font-weight: bold; 
+            text-align: left; 
+            font-size: 1rem;
+        }
+
+        select { 
+            width: 100%; 
+            padding: 14px; /* Plus d'espace pour cliquer */
+            font-size: 1rem;
+            border-radius: 8px; 
+            border: none; 
+            background: #2a2a2a; 
+            color: white; 
+            box-sizing: border-box;
+            appearance: none; /* Nettoie le design par défaut des mobiles */
+        }
+
+        input[type="range"] { 
+            width: 100%; 
+            margin: 15px 0;
+            height: 8px;
+            border-radius: 5px;
+            background: #2a2a2a;
+        }
+
+        /* Gros bouton d'action principal tactile */
+        button { 
+            background: #00ffcc; 
+            color: #121212; 
+            border: none; 
+            padding: 18px 30px; 
+            font-size: 1.2rem; 
+            font-weight: bold; 
+            border-radius: 12px; 
+            cursor: pointer; 
+            width: 100%; 
+            box-shadow: 0 4px 10px rgba(0, 255, 204, 0.2);
+        }
+
+        button:active { 
+            transform: scale(0.98); /* Effet d'enfoncement au toucher */
+        }
+
+        .info { 
+            color: #aaa; 
+            font-size: 0.9rem; 
+            text-align: left;
+            margin-top: 5px;
+        }
+        
+        #statut {
+            font-size: 1.1rem;
+            color: #00ffcc;
+            font-weight: 500;
+            margin: 15px 0;
+        }
+
+        /* Historique optimisé pour mobile */
+        .liste-historique { list-style: none; padding: 0; margin: 15px 0 0 0; text-align: left; }
+        .liste-historique li { 
+            padding: 14px; 
+            background: #2a2a2a; 
+            margin-bottom: 8px; 
+            border-radius: 8px; 
+            display: flex; 
+            justify-content: space-between; 
+            font-size: 1rem;
+            border-left: 5px solid #00ffcc; 
+        }
+        .liste-historique li:first-child { background: #333; font-weight: bold; border-left-color: #ff3366; }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <h1>PunchMeter Pro 🥊</h1>
+        
+        <div class="stats-container">
+            <div class="score-box">
+                <div class="score-label">Dernier Coup</div>
+                <div class="score" id="affichageScore">0.0</div>
+            </div>
+            <div class="score-box" style="border-left: 1px solid #333;">
+                <div class="score-label">🏆 Record</div>
+                <div class="record" id="affichageRecord">0.0</div>
+            </div>
+        </div>
+
+        <p id="statut">Prêt à calibrer.</p>
+        <button id="btnConfiguration">DÉMARRER</button>
+    </div>
+
+    <div class="card">
+        <h3>📋 Historique (5 derniers)</h3>
+        <ul id="listeHistorique" class="liste-historique">
+            <li style="border: none; color: #666; justify-content: center; background: transparent;">Aucun coup enregistré.</li>
+        </ul>
+    </div>
+
+    <div class="card">
+        <h3>⚙️ Réglages & Sensibilité</h3>
+        
+        <label for="selectSupport">Support utilisé :</label>
+        <select id="selectSupport">
+            <option value="sac">Sac Suspendu (Mobile)</option>
+            <option value="mur">Cible Murale (Fixe)</option>
+        </select>
+
+        <label for="sliderSensibilite">Seuil de choc :</label>
+        <input type="range" id="sliderSensibilite" min="5" max="50" value="15">
+        <div class="info">Seuil actuel : <span id="valeurSeuil" style="color: #00ffcc; font-weight:bold;">15</span> m/s²</div>
+    </div>
+
+    <script>
+        let seuilDetection = 15; 
+        let dureeFenetreImpact = 100; 
+        let tempsAttenteAntiRebond = 1000; 
+        
+        let enTrainDeFrapper = false;
+        let maxImpact = 0;
+        let recordSession = 0.0;
+        let historiqueCoups = [];
+
+        const slider = document.getElementById('sliderSensibilite');
+        const valeurSeuilText = document.getElementById('valeurSeuil');
+        const selectSupport = document.getElementById('selectSupport');
+        const affichageScore = document.getElementById('affichageScore');
+        const affichageRecord = document.getElementById('affichageRecord');
+        const listeHistorique = document.getElementById('listeHistorique');
+        const statut = document.getElementById('statut');
+        const btnConfig = document.getElementById('btnConfiguration');
+
+        slider.addEventListener('input', (e) => {
+            seuilDetection = parseFloat(e.target.value);
+            valeurSeuilText.innerText = seuilDetection;
+        });
+
+        selectSupport.addEventListener('change', (e) => {
+            if (e.target.value === 'sac') {
+                dureeFenetreImpact = 100;    
+                tempsAttenteAntiRebond = 1000; 
+                slider.value = 15;
+            } else if (e.target.value === 'mur') {
+                dureeFenetreImpact = 30;     
+                tempsAttenteAntiRebond = 500;  
+                slider.value = 30;           
+            }
+            seuilDetection = parseFloat(slider.value);
+            valeurSeuilText.innerText = seuilDetection;
+        });
+
+        function annoncerTexte(texte) {
+            let message = new SpeechSynthesisUtterance(texte);
+            message.lang = 'fr-FR';
+            message.rate = 1.3; 
+            window.speechSynthesis.speak(message);
+        }
+
+        btnConfig.addEventListener('click', async () => {
+            if (typeof DeviceMotionEvent.requestPermission === 'function') {
+                const permission = await DeviceMotionEvent.requestPermission();
+                if (permission !== 'granted') {
+                    statut.innerText = "Permission capteur refusée.";
+                    return;
+                }
+            }
+            
+            annoncerTexte("C'est parti");
+            statut.innerText = "Analyse en cours... Frappez !";
+            btnConfig.style.display = 'none';
+
+            window.addEventListener('devicemotion', (event) => {
+                let acc = event.acceleration;
+                if (!acc || acc.x === null) return;
+
+                let forceInstantanee = Math.sqrt(acc.x**2 + acc.y**2 + acc.z**2);
+
+                if (!enTrainDeFrapper && forceInstantanee > seuilDetection) {
+                    enTrainDeFrapper = true;
+                    maxImpact = forceInstantanee;
+                    statut.innerText = "💥 SHOCK !";
+
+                    setTimeout(() => {
+                        let scoreArrondi = parseFloat(maxImpact.toFixed(1));
+                        affichageScore.innerText = scoreArrondi;
+                        
+                        if (scoreArrondi > recordSession) {
+                            recordSession = scoreArrondi;
+                            affichageRecord.innerText = recordSession;
+                            annoncerTexte("Record " + scoreArrondi);
+                        } else {
+                            annoncerTexte(scoreArrondi.toString());
+                        }
+
+                        historiqueCoups.unshift(scoreArrondi);
+                        if (historiqueCoups.length > 5) {
+                            historiqueCoups.pop();
+                        }
+                        
+                        listeHistorique.innerHTML = historiqueCoups.map((coup, index) => {
+                            return `<li><span>Coup n°${historiqueCoups.length - index}</span> <b>${coup} m/s²</b></li>`;
+                        }).join('');
+
+                        setTimeout(() => {
+                            enTrainDeFrapper = false;
+                            statut.innerText = "En attente du coup suivant...";
+                        }, tempsAttenteAntiRebond);
+
+                    }, dureeFenetreImpact);
+                } 
+                else if (enTrainDeFrapper && forceInstantanee > maxImpact) {
+                    maxImpact = forceInstantanee;
+                }
+            });
+        });
+    </script>
+</body>
+</html>
