@@ -161,11 +161,11 @@
         <div class="stats-container">
             <div class="score-box">
                 <div class="score-label">Dernier Coup</div>
-                <div class="score" id="affichageScore">0.0</div>
+                <div class="score" id="affichageScore">0</div>
             </div>
             <div class="score-box" style="border-left: 1px solid #333;">
                 <div class="score-label">🏆 Record</div>
-                <div class="record" id="affichageRecord">0.0</div>
+                <div class="record" id="affichageRecord">0</div>
             </div>
         </div>
 
@@ -201,7 +201,7 @@
         
         let enTrainDeFrapper = false;
         let maxImpact = 0;
-        let recordSession = 0.0;
+        let recordSession = 0;
         let historiqueCoups = [];
 
         const slider = document.getElementById('sliderSensibilite');
@@ -264,7 +264,8 @@
                     statut.innerText = "💥 SHOCK !";
 
                     setTimeout(() => {
-                        let scoreArrondi = parseFloat(maxImpact.toFixed(1));
+                        // Remplacement de toFixed(1) par Math.round() pour obtenir un entier
+                        let scoreArrondi = Math.round(maxImpact);
                         affichageScore.innerText = scoreArrondi;
                         
                         if (scoreArrondi > recordSession) {
