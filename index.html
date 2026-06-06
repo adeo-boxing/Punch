@@ -242,7 +242,20 @@
                 <select id="selectMode">
                     <option value="libre">Entraînement Libre (Continu)</option>
                     <option value="reaction">Test de Réaction (Signal Continu Automatique)</option>
+                    <option value="combo">Test d'Enchaînement (Combo Aléatoire)</option>
                 </select>
+
+                <div id="wrapperCombo" style="display: none;">
+                    <label for="selectNbCoupsCombo">Nombre de coups du combo :</label>
+                    <select id="selectNbCoupsCombo">
+                        <option value="1">1 coup</option>
+                        <option value="2">2 coups</option>
+                        <option value="3" selected>3 coups</option>
+                        <option value="4">4 coups</option>
+                        <option value="5">5 coups</option>
+                        <option value="6">6 coups</option>
+                    </select>
+                </div>
 
                 <label for="selectSupport">Support utilisé :</label>
                 <select id="selectSupport">
@@ -277,10 +290,17 @@
         let timeoutSignal = null;
         let capteursInitialises = false;
 
+        // Gestion du mode Combo
+        let nombreCoupsCombo = 3;
+        let coupsRestantsCombo = 0;
+        let comboEnCours = false;
+
         const slider = document.getElementById('sliderSensibilite');
         const valeurSeuilText = document.getElementById('valeurSeuil');
         const selectSupport = document.getElementById('selectSupport');
         const selectMode = document.getElementById('selectMode');
+        const wrapperCombo = document.getElementById('wrapperCombo');
+        const selectNbCoupsCombo = document.getElementById('selectNbCoupsCombo');
         const affichageScore = document.getElementById('affichageScore');
         const affichageReaction = document.getElementById('affichageReaction');
         const affichageRecord = document.getElementById('affichageRecord');
@@ -309,7 +329,16 @@
 
         selectMode.addEventListener('change', (e) => {
             modeActuel = e.target.value;
+            if (modeActuel === 'combo') {
+                wrapperCombo.style.display = 'block';
+            } else {
+                wrapperCombo.style.display = 'none';
+            }
             arreterSysteme();
+        });
+
+        selectNbCoupsCombo.addEventListener('change', (e) => {
+            nombreCoupsCombo = parseInt(e.target.value);
         });
 
         function annoncerTexte(texte) {
@@ -349,8 +378,10 @@
                     annoncerTexte("C'est parti");
                     statut.innerText = "Analyse en cours... Frappez !";
                     statut.style.color = "#00ffcc";
-                } else {
+                } else if (modeActuel === 'reaction') {
                     lancerSequenceReaction();
+                } else if (modeActuel === 'combo') {
+                    lancerSequenceCombo();
                 }
             } else {
                 // EXTINCTION MANUELLE
@@ -363,16 +394,23 @@
             sequenceEnCours = false;
             signalDonne = false;
             enTrainDeFrapper = false;
+            comboEnCours = false;
             if (timeoutSignal) clearTimeout(timeoutSignal);
             
             btnConfig.innerText = "DÉMARRER";
             btnConfig.classList.remove('actif');
             
-            statut.innerText = modeActuel === 'libre' ? "Prêt à démarrer." : "Prêt pour le test de réaction.";
+            if (modeActuel === 'libre') {
+                statut.innerText = "Prêt à démarrer.";
+            } else if (modeActuel === 'reaction') {
+                statut.innerText = "Prêt pour le test de réaction.";
+            } else {
+                statut.innerText = "Prêt pour le mode combo.";
+            }
             statut.style.color = "#00ffcc";
         }
 
-        // Lancement d'une séquence de signal (Boucle)
+        // Lancement d'une séquence de signal (Boucle Mode Réaction)
         function lancerSequenceReaction() {
             if (!systemeActif) return;
 
@@ -397,6 +435,29 @@
             }, delaiAleatoire);
         }
 
+        // Gestion du Mode Combo (Initialisation de l'enchaînement)
+        function lancerSequenceCombo() {
+            if (!systemeActif) return;
+            comboEnCours = true;
+            coupsRestantsCombo = nombreCoupsCombo;
+            statut.innerText = "Préparez-vous...";
+            statut.style.color = "#ffcc00";
+            
+            setTimeout(() => {
+                if (!systemeActif || !comboEnCours) return;
+                annoncerProchainCoupCombo();
+            }, 1500);
+        }
+
+        // Annonce vocale du chiffre cible (1 à 6)
+        function annoncerProchainCoupCombo() {
+            let chiffreAleatoire = Math.floor(Math.random() * 6) + 1;
+            let coupIndex = nombreCoupsCombo - coupsRestantsCombo + 1;
+            statut.innerText = `🔥 CIBLE : Chiffre ${chiffreAleatoire} (${coupIndex}/${nombreCoupsCombo})`;
+            statut.style.color = "#00ff33";
+            annoncerTexte(chiffreAleatoire.toString());
+        }
+
         function activerEcouteCapteurs() {
             window.addEventListener('devicemotion', (event) => {
                 if (!systemeActif) return; 
@@ -406,7 +467,7 @@
 
                 let forceInstantanee = Math.sqrt(acc.x**2 + acc.y**2 + acc.z**2);
 
-                // GESTION DU FAUX DÉPART
+                // GESTION DU FAUX DÉPART (Uniquement en mode réaction)
                 if (modeActuel === 'reaction' && sequenceEnCours && !signalDonne) {
                     if (forceInstantanee > seuilDetection) {
                         clearTimeout(timeoutSignal);
@@ -424,7 +485,7 @@
                 }
 
                 // DÉTECTION DU COUP VALIDE
-                if (modeActuel === 'libre' || (modeActuel === 'reaction' && signalDonne)) {
+                if (modeActuel === 'libre' || (modeActuel === 'reaction' && signalDonne) || (modeActuel === 'combo' && comboEnCours)) {
                     
                     if (!enTrainDeFrapper && forceInstantanee > seuilDetection) {
                         enTrainDeFrapper = true;
@@ -451,9 +512,9 @@
                             if (scoreArrondi > recordSession) {
                                 recordSession = scoreArrondi;
                                 affichageRecord.innerText = recordSession;
-                                annoncerTexte("Record " + scoreArrondi);
+                                if (modeActuel !== 'combo') annoncerTexte("Record " + scoreArrondi);
                             } else {
-                                annoncerTexte(scoreArrondi.toString());
+                                if (modeActuel !== 'combo') annoncerTexte(scoreArrondi.toString());
                             }
 
                             // Enregistrement historique
@@ -481,9 +542,22 @@
                                     if (modeActuel === 'libre') {
                                         statut.innerText = "En attente du coup suivant...";
                                         statut.style.color = "#00ffcc";
-                                    } else {
-                                        // BOUCLE AUTOMATIQUE : On relance l'attente du signal suivant
+                                    } else if (modeActuel === 'reaction') {
                                         lancerSequenceReaction();
+                                    } else if (modeActuel === 'combo') {
+                                        coupsRestantsCombo--;
+                                        if (coupsRestantsCombo > 0) {
+                                            // Il reste des coups dans le combo, on annonce le suivant
+                                            annoncerProchainCoupCombo();
+                                        } else {
+                                            // Combo terminé, petite pause et on relance un enchaînement
+                                            statut.innerText = "Enchaînement terminé !";
+                                            statut.style.color = "#00ffcc";
+                                            annoncerTexte("Enchaînement terminé");
+                                            setTimeout(() => {
+                                                if (systemeActif && modeActuel === 'combo') lancerSequenceCombo();
+                                            }, 2500);
+                                        }
                                     }
                                 }
                             }, tempsAttenteAntiRebond);
