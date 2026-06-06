@@ -455,6 +455,10 @@
             let coupIndex = nombreCoupsCombo - coupsRestantsCombo + 1;
             statut.innerText = `🔥 CIBLE : Chiffre ${chiffreAleatoire} (${coupIndex}/${nombreCoupsCombo})`;
             statut.style.color = "#00ff33";
+            
+            // On capture le temps exact de l'annonce visuelle/vocale
+            tempsSignal = performance.now(); 
+            
             annoncerTexte(chiffreAleatoire.toString());
         }
 
@@ -493,8 +497,9 @@
                         statut.innerText = "💥 IMPACT !";
                         statut.style.color = "#ff3366";
 
+                        // Calcul du temps de réaction pour Réaction ET Combo
                         let tempsReactionCalcule = 0;
-                        if (modeActuel === 'reaction') {
+                        if (modeActuel === 'reaction' || modeActuel === 'combo') {
                             tempsReactionCalcule = (performance.now() - tempsSignal) / 1000;
                         }
 
@@ -503,7 +508,8 @@
                             let scoreArrondi = Math.round(maxImpact); 
                             affichageScore.innerText = scoreArrondi;
                             
-                            if (modeActuel === 'reaction') {
+                            // Affichage à l'écran du temps si mode réaction ou combo
+                            if (modeActuel === 'reaction' || modeActuel === 'combo') {
                                 affichageReaction.innerText = tempsReactionCalcule.toFixed(3) + "s";
                             } else {
                                 affichageReaction.innerText = "-.---s";
@@ -522,7 +528,7 @@
                             historiqueCoups.unshift({
                                 numero: compteurCoups,
                                 force: scoreArrondi,
-                                reaction: modeActuel === 'reaction' ? tempsReactionCalcule.toFixed(3) : null
+                                reaction: (modeActuel === 'reaction' || modeActuel === 'combo') ? tempsReactionCalcule.toFixed(3) : null
                             });
 
                             if (historiqueCoups.length > 5) {
