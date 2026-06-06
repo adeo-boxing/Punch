@@ -1,4 +1,6 @@
-<!DOCTYPE html>
+
+</body>
+</html<!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
@@ -14,15 +16,15 @@
             padding: 10px;
             margin: 0;
             box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent; /* Enlève le flash bleu au clic sur mobile */
+            -webkit-tap-highlight-color: transparent;
         }
 
-        /* Cartes responsives qui prennent toute la largeur disponible sur petit écran */
+        /* Cartes responsives */
         .card { 
             background: #1e1e1e; 
             padding: 20px 15px; 
             border-radius: 16px; 
-            max-width: 100%; /* S'adapte aux grands téléphones */
+            max-width: 100%; 
             margin: 12px auto; 
             box-shadow: 0 4px 20px rgba(0,0,0,0.6); 
             border: 1px solid #2a2a2a; 
@@ -32,7 +34,7 @@
         h1 { 
             color: #00ffcc; 
             margin-top: 0; 
-            font-size: 1.8rem; /* Titre plus grand et lisible */
+            font-size: 1.8rem; 
         }
 
         h3 {
@@ -41,43 +43,51 @@
             color: #aaa;
         }
         
-        /* Conteneur de stats qui passe en colonne si l'écran est vraiment trop étroit */
+        /* Conteneur de stats ajusté pour 3 colonnes */
         .stats-container { 
             display: flex; 
-            justify-content: space-around; 
+            justify-content: space-between; 
             align-items: center; 
             margin: 25px 0; 
+            gap: 5px;
         }
 
         .score-box { 
             flex: 1; 
-            padding: 0 5px;
+            padding: 5px 2px;
         }
 
         .score-label { 
-            font-size: 0.8rem; 
+            font-size: 0.75rem; 
             color: #888; 
             text-transform: uppercase; 
             letter-spacing: 1px; 
             margin-bottom: 5px;
         }
 
-        /* Chiffres géants pour être vus de loin pendant l'entraînement */
+        /* Ajustement des tailles pour écrans mobiles */
         .score { 
-            font-size: 4.5rem; 
+            font-size: 2.6rem; 
             font-weight: bold; 
             color: #ff3366; 
-            line-height: 1;
+            line-height: 1.1;
         }
 
         .record { 
-            font-size: 3.5rem; 
+            font-size: 2.2rem; 
             font-weight: bold; 
             color: #ffcc00; 
-            line-height: 1;
+            line-height: 1.1;
         }
 
-        /* Formulaires et listes adaptés aux doigts (gros boutons/zones de clic) */
+        .reaction-val {
+            font-size: 2.2rem; 
+            font-weight: bold; 
+            color: #00ffcc; 
+            line-height: 1.1;
+        }
+
+        /* Formulaires et listes adaptés aux doigts */
         label { 
             display: block; 
             margin: 18px 0 8px; 
@@ -88,14 +98,14 @@
 
         select { 
             width: 100%; 
-            padding: 14px; /* Plus d'espace pour cliquer */
+            padding: 14px; 
             font-size: 1rem;
             border-radius: 8px; 
             border: none; 
             background: #2a2a2a; 
             color: white; 
             box-sizing: border-box;
-            appearance: none; /* Nettoie le design par défaut des mobiles */
+            appearance: none; 
         }
 
         input[type="range"] { 
@@ -118,10 +128,18 @@
             cursor: pointer; 
             width: 100%; 
             box-shadow: 0 4px 10px rgba(0, 255, 204, 0.2);
+            transition: background 0.2s;
         }
 
-        button:active { 
-            transform: scale(0.98); /* Effet d'enfoncement au toucher */
+        button:disabled {
+            background: #444;
+            color: #888;
+            box-shadow: none;
+            cursor: not-allowed;
+        }
+
+        button:active:not(:disabled) { 
+            transform: scale(0.98); 
         }
 
         .info { 
@@ -136,9 +154,41 @@
             color: #00ffcc;
             font-weight: 500;
             margin: 15px 0;
+            transition: color 0.2s;
         }
 
-        /* Historique optimisé pour mobile */
+        /* Style spécifique pour l'accordéon natif */
+        details {
+            width: 100%;
+            text-align: left;
+        }
+        summary {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #aaa;
+            list-style: none;
+            outline: none;
+        }
+        summary::-webkit-details-marker {
+            display: none;
+        }
+        .chevron {
+            font-size: 1rem;
+            color: #00ffcc;
+            transition: transform 0.2s ease;
+        }
+        details[open] .chevron {
+            transform: rotate(180deg);
+        }
+        .details-content {
+            margin-top: 15px;
+        }
+
+        /* Historique optimisé */
         .liste-historique { list-style: none; padding: 0; margin: 15px 0 0 0; text-align: left; }
         .liste-historique li { 
             padding: 14px; 
@@ -161,15 +211,19 @@
         <div class="stats-container">
             <div class="score-box">
                 <div class="score-label">Dernier Coup</div>
-                <div class="score" id="affichageScore">0</div>
+                <div class="score" id="affichageScore">0.0</div>
             </div>
-            <div class="score-box" style="border-left: 1px solid #333;">
+            <div class="score-box" style="border-left: 1px solid #333; border-right: 1px solid #333;">
+                <div class="score-label">⏱️ Réaction</div>
+                <div class="reaction-val" id="affichageReaction">-.---s</div>
+            </div>
+            <div class="score-box">
                 <div class="score-label">🏆 Record</div>
-                <div class="record" id="affichageRecord">0</div>
+                <div class="record" id="affichageRecord">0.0</div>
             </div>
         </div>
 
-        <p id="statut">Prêt à calibrer.</p>
+        <p id="statut">Prêt à démarrer.</p>
         <button id="btnConfiguration">DÉMARRER</button>
     </div>
 
@@ -181,17 +235,29 @@
     </div>
 
     <div class="card">
-        <h3>⚙️ Réglages & Sensibilité</h3>
-        
-        <label for="selectSupport">Support utilisé :</label>
-        <select id="selectSupport">
-            <option value="sac">Sac Suspendu (Mobile)</option>
-            <option value="mur">Cible Murale (Fixe)</option>
-        </select>
+        <details>
+            <summary>
+                <span>⚙️ Réglages & Sensibilité</span>
+                <span class="chevron">▼</span>
+            </summary>
+            <div class="details-content">
+                <label for="selectMode">Mode de fonctionnement :</label>
+                <select id="selectMode">
+                    <option value="libre">Entraînement Libre (Continu)</option>
+                    <option value="reaction">Test de Réaction (Signal Aléatoire)</option>
+                </select>
 
-        <label for="sliderSensibilite">Seuil de choc :</label>
-        <input type="range" id="sliderSensibilite" min="5" max="50" value="15">
-        <div class="info">Seuil actuel : <span id="valeurSeuil" style="color: #00ffcc; font-weight:bold;">15</span> m/s²</div>
+                <label for="selectSupport">Support utilisé :</label>
+                <select id="selectSupport">
+                    <option value="sac">Sac Suspendu (Mobile)</option>
+                    <option value="mur">Cible Murale (Fixe)</option>
+                </select>
+
+                <label for="sliderSensibilite">Seuil de choc :</label>
+                <input type="range" id="sliderSensibilite" min="5" max="50" value="15">
+                <div class="info">Seuil actuel : <span id="valeurSeuil" style="color: #00ffcc; font-weight:bold;">15</span> m/s²</div>
+            </div>
+        </details>
     </div>
 
     <script>
@@ -199,15 +265,26 @@
         let dureeFenetreImpact = 100; 
         let tempsAttenteAntiRebond = 1000; 
         
+        let modeActuel = 'libre'; 
         let enTrainDeFrapper = false;
         let maxImpact = 0;
-        let recordSession = 0;
+        let recordSession = 0.0;
         let historiqueCoups = [];
+        let compteurCoups = 0;
+
+        // Variables pour la gestion de la réaction
+        let sequenceEnCours = false;
+        let signalDonne = false;
+        let tempsSignal = 0;
+        let timeoutSignal = null;
+        let capteursInitialises = false;
 
         const slider = document.getElementById('sliderSensibilite');
         const valeurSeuilText = document.getElementById('valeurSeuil');
         const selectSupport = document.getElementById('selectSupport');
+        const selectMode = document.getElementById('selectMode');
         const affichageScore = document.getElementById('affichageScore');
+        const affichageReaction = document.getElementById('affichageReaction');
         const affichageRecord = document.getElementById('affichageRecord');
         const listeHistorique = document.getElementById('listeHistorique');
         const statut = document.getElementById('statut');
@@ -232,6 +309,24 @@
             valeurSeuilText.innerText = seuilDetection;
         });
 
+        // Changement de mode de fonctionnement
+        selectMode.addEventListener('change', (e) => {
+            modeActuel = e.target.value;
+            reinitialiserInterface();
+        });
+
+        function reinitialiserInterface() {
+            if (timeoutSignal) clearTimeout(timeoutSignal);
+            sequenceEnCours = false;
+            signalDonne = false;
+            enTrainDeFrapper = false;
+            btnConfig.style.display = 'block';
+            btnConfig.disabled = false;
+            btnConfig.innerText = modeActuel === 'libre' ? "DÉMARRER" : "LANCER LE TEST";
+            statut.innerText = modeActuel === 'libre' ? "Prêt à calibrer." : "Prêt pour le test de réaction.";
+            statut.style.color = "#00ffcc";
+        }
+
         function annoncerTexte(texte) {
             let message = new SpeechSynthesisUtterance(texte);
             message.lang = 'fr-FR';
@@ -239,64 +334,157 @@
             window.speechSynthesis.speak(message);
         }
 
+        // Déclencheur principal du bouton
         btnConfig.addEventListener('click', async () => {
             if (typeof DeviceMotionEvent.requestPermission === 'function') {
-                const permission = await DeviceMotionEvent.requestPermission();
-                if (permission !== 'granted') {
-                    statut.innerText = "Permission capteur refusée.";
+                try {
+                    const permission = await DeviceMotionEvent.requestPermission();
+                    if (permission !== 'granted') {
+                        statut.innerText = "Permission capteur refusée.";
+                        return;
+                    }
+                } catch(e) {
+                    statut.innerText = "Erreur d'accès aux capteurs.";
                     return;
                 }
             }
             
-            annoncerTexte("C'est parti");
-            statut.innerText = "Analyse en cours... Frappez !";
-            btnConfig.style.display = 'none';
+            if (!capteursInitialises) {
+                activerEcouteCapteurs();
+                capteursInitialises = true;
+            }
 
+            if (modeActuel === 'libre') {
+                annoncerTexte("C'est parti");
+                statut.innerText = "Analyse en cours... Frappez !";
+                btnConfig.style.display = 'none';
+            } else {
+                lancerSequenceReaction();
+            }
+        });
+
+        // Logique du test de réaction
+        function lancerSequenceReaction() {
+            sequenceEnCours = true;
+            signalDonne = false;
+            enTrainDeFrapper = false;
+            
+            btnConfig.disabled = true;
+            btnConfig.innerText = "ATTENTION...";
+            statut.innerText = "Préparez-vous... Attendez le signal !";
+            statut.style.color = "#ffcc00";
+            affichageReaction.innerText = "-.---s";
+            
+            // Délai aléatoire entre 2 et 4.5 secondes
+            let delaiAleatoire = 2000 + Math.random() * 2500;
+            
+            timeoutSignal = setTimeout(() => {
+                if (!sequenceEnCours) return; 
+                signalDonne = true;
+                tempsSignal = performance.now();
+                statut.innerText = "💥 GO ! FRAPPEZ !";
+                statut.style.color = "#00ff33"; // Vert flash
+                annoncerTexte("Allez !");
+            }, delaiAleatoire);
+        }
+
+        // Initialisation unique des écouteurs d'accéléromètre
+        function activerEcouteCapteurs() {
             window.addEventListener('devicemotion', (event) => {
                 let acc = event.acceleration;
                 if (!acc || acc.x === null) return;
 
                 let forceInstantanee = Math.sqrt(acc.x**2 + acc.y**2 + acc.z**2);
 
-                if (!enTrainDeFrapper && forceInstantanee > seuilDetection) {
-                    enTrainDeFrapper = true;
-                    maxImpact = forceInstantanee;
-                    statut.innerText = "💥 SHOCK !";
+                // GESTION DU FAUX DÉPART (Mode réaction)
+                if (modeActuel === 'reaction' && sequenceEnCours && !signalDonne) {
+                    if (forceInstantanee > seuilDetection) {
+                        clearTimeout(timeoutSignal);
+                        sequenceEnCours = false;
+                        statut.innerText = "❌ FAUX DÉPART ! Trop rapide.";
+                        statut.style.color = "#ff3366";
+                        annoncerTexte("Faux départ");
+                        btnConfig.disabled = false;
+                        btnConfig.innerText = "RÉESSAYER";
+                    }
+                    return; 
+                }
 
-                    setTimeout(() => {
-                        // Remplacement de toFixed(1) par Math.round() pour obtenir un entier
-                        let scoreArrondi = Math.round(maxImpact);
-                        affichageScore.innerText = scoreArrondi;
-                        
-                        if (scoreArrondi > recordSession) {
-                            recordSession = scoreArrondi;
-                            affichageRecord.innerText = recordSession;
-                            annoncerTexte("Record " + scoreArrondi);
-                        } else {
-                            annoncerTexte(scoreArrondi.toString());
-                        }
+                // DÉTECTION DU COUP VALIDE
+                if (modeActuel === 'libre' || (modeActuel === 'reaction' && signalDonne)) {
+                    
+                    if (!enTrainDeFrapper && forceInstantanee > seuilDetection) {
+                        enTrainDeFrapper = true;
+                        maxImpact = forceInstantanee;
+                        statut.innerText = "💥 IMPACT !";
+                        statut.style.color = "#ff3366";
 
-                        historiqueCoups.unshift(scoreArrondi);
-                        if (historiqueCoups.length > 5) {
-                            historiqueCoups.pop();
+                        // Calcul immédiat du temps de réaction dès le premier choc détecté
+                        let tempsReactionCalcule = 0;
+                        if (modeActuel === 'reaction') {
+                            tempsReactionCalcule = (performance.now() - tempsSignal) / 1000;
                         }
-                        
-                        listeHistorique.innerHTML = historiqueCoups.map((coup, index) => {
-                            return `<li><span>Coup n°${historiqueCoups.length - index}</span> <b>${coup} m/s²</b></li>`;
-                        }).join('');
 
                         setTimeout(() => {
-                            enTrainDeFrapper = false;
-                            statut.innerText = "En attente du coup suivant...";
-                        }, tempsAttenteAntiRebond);
+                            let scoreArrondi = parseFloat(maxImpact.toFixed(1));
+                            affichageScore.innerText = scoreArrondi;
+                            
+                            if (modeActuel === 'reaction') {
+                                affichageReaction.innerText = tempsReactionCalcule.toFixed(3) + "s";
+                            } else {
+                                affichageReaction.innerText = "-.---s";
+                            }
+                            
+                            if (scoreArrondi > recordSession) {
+                                recordSession = scoreArrondi;
+                                affichageRecord.innerText = recordSession;
+                                annoncerTexte("Record " + scoreArrondi);
+                            } else {
+                                annoncerTexte(scoreArrondi.toString());
+                            }
 
-                    }, dureeFenetreImpact);
-                } 
-                else if (enTrainDeFrapper && forceInstantanee > maxImpact) {
-                    maxImpact = forceInstantanee;
+                            // Enregistrement dans l'historique
+                            compteurCoups++;
+                            historiqueCoups.unshift({
+                                numero: compteurCoups,
+                                force: scoreArrondi,
+                                reaction: modeActuel === 'reaction' ? tempsReactionCalcule.toFixed(3) : null
+                            });
+
+                            if (historiqueCoups.length > 5) {
+                                historiqueCoups.pop();
+                            }
+                            
+                            listeHistorique.innerHTML = historiqueCoups.map((coup) => {
+                                let details = `${coup.force} m/s²`;
+                                if (coup.reaction) details += ` / ⏱️ ${coup.reaction}s`;
+                                return `<li><span>Coup n°${coup.numero}</span> <b>${details}</b></li>`;
+                            }).join('');
+
+                            // Fin de la fenêtre d'impact et gestion de l'anti-rebond
+                            setTimeout(() => {
+                                enTrainDeFrapper = false;
+                                if (modeActuel === 'libre') {
+                                    statut.innerText = "En attente du coup suivant...";
+                                    statut.style.color = "#00ffcc";
+                                } else {
+                                    sequenceEnCours = false;
+                                    signalDonne = false;
+                                    btnConfig.disabled = false;
+                                    btnConfig.innerText = "RELANCER UN TEST";
+                                    statut.innerText = "Analyse terminée ! Prêt pour le suivant.";
+                                    statut.style.color = "#00ffcc";
+                                }
+                            }, tempsAttenteAntiRebond);
+
+                        }, dureeFenetreImpact);
+                    } 
+                    else if (enTrainDeFrapper && forceInstantanee > maxImpact) {
+                        maxImpact = forceInstantanee;
+                    }
                 }
             });
-        });
+        }
     </script>
 </body>
 </html>
