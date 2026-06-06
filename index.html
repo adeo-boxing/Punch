@@ -1,6 +1,4 @@
-
-</body>
-</html<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
@@ -65,29 +63,29 @@
             margin-bottom: 5px;
         }
 
-        /* Ajustement des tailles pour écrans mobiles */
+        /* Chiffres sans virgules */
         .score { 
-            font-size: 2.6rem; 
+            font-size: 2.8rem; 
             font-weight: bold; 
             color: #ff3366; 
             line-height: 1.1;
         }
 
         .record { 
-            font-size: 2.2rem; 
+            font-size: 2.4rem; 
             font-weight: bold; 
             color: #ffcc00; 
             line-height: 1.1;
         }
 
         .reaction-val {
-            font-size: 2.2rem; 
+            font-size: 2.4rem; 
             font-weight: bold; 
             color: #00ffcc; 
             line-height: 1.1;
         }
 
-        /* Formulaires et listes adaptés aux doigts */
+        /* Formulaires et listes */
         label { 
             display: block; 
             margin: 18px 0 8px; 
@@ -116,7 +114,7 @@
             background: #2a2a2a;
         }
 
-        /* Gros bouton d'action principal tactile */
+        /* Bouton d'action principal tactile et dynamique */
         button { 
             background: #00ffcc; 
             color: #121212; 
@@ -128,17 +126,17 @@
             cursor: pointer; 
             width: 100%; 
             box-shadow: 0 4px 10px rgba(0, 255, 204, 0.2);
-            transition: background 0.2s;
+            transition: background 0.2s, color 0.2s;
         }
 
-        button:disabled {
-            background: #444;
-            color: #888;
-            box-shadow: none;
-            cursor: not-allowed;
+        /* Style quand le système est actif (Bouton d'arrêt) */
+        button.actif {
+            background: #ff3366;
+            color: white;
+            box-shadow: 0 4px 10px rgba(255, 51, 102, 0.2);
         }
 
-        button:active:not(:disabled) { 
+        button:active { 
             transform: scale(0.98); 
         }
 
@@ -154,10 +152,9 @@
             color: #00ffcc;
             font-weight: 500;
             margin: 15px 0;
-            transition: color 0.2s;
         }
 
-        /* Style spécifique pour l'accordéon natif */
+        /* Style de l'accordéon natif */
         details {
             width: 100%;
             text-align: left;
@@ -188,7 +185,7 @@
             margin-top: 15px;
         }
 
-        /* Historique optimisé */
+        /* Historique */
         .liste-historique { list-style: none; padding: 0; margin: 15px 0 0 0; text-align: left; }
         .liste-historique li { 
             padding: 14px; 
@@ -211,7 +208,7 @@
         <div class="stats-container">
             <div class="score-box">
                 <div class="score-label">Dernier Coup</div>
-                <div class="score" id="affichageScore">0.0</div>
+                <div class="score" id="affichageScore">0</div>
             </div>
             <div class="score-box" style="border-left: 1px solid #333; border-right: 1px solid #333;">
                 <div class="score-label">⏱️ Réaction</div>
@@ -219,7 +216,7 @@
             </div>
             <div class="score-box">
                 <div class="score-label">🏆 Record</div>
-                <div class="record" id="affichageRecord">0.0</div>
+                <div class="record" id="affichageRecord">0</div>
             </div>
         </div>
 
@@ -244,7 +241,7 @@
                 <label for="selectMode">Mode de fonctionnement :</label>
                 <select id="selectMode">
                     <option value="libre">Entraînement Libre (Continu)</option>
-                    <option value="reaction">Test de Réaction (Signal Aléatoire)</option>
+                    <option value="reaction">Test de Réaction (Signal Continu Automatique)</option>
                 </select>
 
                 <label for="selectSupport">Support utilisé :</label>
@@ -266,13 +263,14 @@
         let tempsAttenteAntiRebond = 1000; 
         
         let modeActuel = 'libre'; 
+        let systemeActif = false; 
         let enTrainDeFrapper = false;
         let maxImpact = 0;
-        let recordSession = 0.0;
+        let recordSession = 0;
         let historiqueCoups = [];
         let compteurCoups = 0;
 
-        // Variables pour la gestion de la réaction
+        // Gestion de la réaction
         let sequenceEnCours = false;
         let signalDonne = false;
         let tempsSignal = 0;
@@ -309,23 +307,10 @@
             valeurSeuilText.innerText = seuilDetection;
         });
 
-        // Changement de mode de fonctionnement
         selectMode.addEventListener('change', (e) => {
             modeActuel = e.target.value;
-            reinitialiserInterface();
+            arreterSysteme();
         });
-
-        function reinitialiserInterface() {
-            if (timeoutSignal) clearTimeout(timeoutSignal);
-            sequenceEnCours = false;
-            signalDonne = false;
-            enTrainDeFrapper = false;
-            btnConfig.style.display = 'block';
-            btnConfig.disabled = false;
-            btnConfig.innerText = modeActuel === 'libre' ? "DÉMARRER" : "LANCER LE TEST";
-            statut.innerText = modeActuel === 'libre' ? "Prêt à calibrer." : "Prêt pour le test de réaction.";
-            statut.style.color = "#00ffcc";
-        }
 
         function annoncerTexte(texte) {
             let message = new SpeechSynthesisUtterance(texte);
@@ -334,7 +319,7 @@
             window.speechSynthesis.speak(message);
         }
 
-        // Déclencheur principal du bouton
+        // Gestion globale du bouton unique (Marche / Arrêt)
         btnConfig.addEventListener('click', async () => {
             if (typeof DeviceMotionEvent.requestPermission === 'function') {
                 try {
@@ -354,58 +339,86 @@
                 capteursInitialises = true;
             }
 
-            if (modeActuel === 'libre') {
-                annoncerTexte("C'est parti");
-                statut.innerText = "Analyse en cours... Frappez !";
-                btnConfig.style.display = 'none';
+            if (!systemeActif) {
+                // ALLUMAGE
+                systemeActif = true;
+                btnConfig.innerText = "ARRÊTER";
+                btnConfig.classList.add('actif');
+
+                if (modeActuel === 'libre') {
+                    annoncerTexte("C'est parti");
+                    statut.innerText = "Analyse en cours... Frappez !";
+                    statut.style.color = "#00ffcc";
+                } else {
+                    lancerSequenceReaction();
+                }
             } else {
-                lancerSequenceReaction();
+                // EXTINCTION MANUELLE
+                arreterSysteme();
             }
         });
 
-        // Logique du test de réaction
+        function arreterSysteme() {
+            systemeActif = false;
+            sequenceEnCours = false;
+            signalDonne = false;
+            enTrainDeFrapper = false;
+            if (timeoutSignal) clearTimeout(timeoutSignal);
+            
+            btnConfig.innerText = "DÉMARRER";
+            btnConfig.classList.remove('actif');
+            
+            statut.innerText = modeActuel === 'libre' ? "Prêt à démarrer." : "Prêt pour le test de réaction.";
+            statut.style.color = "#00ffcc";
+        }
+
+        // Lancement d'une séquence de signal (Boucle)
         function lancerSequenceReaction() {
+            if (!systemeActif) return;
+
             sequenceEnCours = true;
             signalDonne = false;
             enTrainDeFrapper = false;
             
-            btnConfig.disabled = true;
-            btnConfig.innerText = "ATTENTION...";
-            statut.innerText = "Préparez-vous... Attendez le signal !";
+            statut.innerText = "Attendez le signal...";
             statut.style.color = "#ffcc00";
-            affichageReaction.innerText = "-.---s";
             
-            // Délai aléatoire entre 2 et 4.5 secondes
-            let delaiAleatoire = 2000 + Math.random() * 2500;
+            // Délai variable entre 1.5 et 5.0 secondes max
+            let delaiAleatoire = 1500 + Math.random() * 3500;
             
             timeoutSignal = setTimeout(() => {
-                if (!sequenceEnCours) return; 
+                if (!systemeActif || !sequenceEnCours) return; 
+                
                 signalDonne = true;
                 tempsSignal = performance.now();
                 statut.innerText = "💥 GO ! FRAPPEZ !";
-                statut.style.color = "#00ff33"; // Vert flash
-                annoncerTexte("Allez !");
+                statut.style.color = "#00ff33"; 
+                annoncerTexte("Allez");
             }, delaiAleatoire);
         }
 
-        // Initialisation unique des écouteurs d'accéléromètre
         function activerEcouteCapteurs() {
             window.addEventListener('devicemotion', (event) => {
+                if (!systemeActif) return; 
+
                 let acc = event.acceleration;
                 if (!acc || acc.x === null) return;
 
                 let forceInstantanee = Math.sqrt(acc.x**2 + acc.y**2 + acc.z**2);
 
-                // GESTION DU FAUX DÉPART (Mode réaction)
+                // GESTION DU FAUX DÉPART
                 if (modeActuel === 'reaction' && sequenceEnCours && !signalDonne) {
                     if (forceInstantanee > seuilDetection) {
                         clearTimeout(timeoutSignal);
                         sequenceEnCours = false;
-                        statut.innerText = "❌ FAUX DÉPART ! Trop rapide.";
+                        statut.innerText = "❌ FAUX DÉPART !";
                         statut.style.color = "#ff3366";
                         annoncerTexte("Faux départ");
-                        btnConfig.disabled = false;
-                        btnConfig.innerText = "RÉESSAYER";
+                        
+                        // Relance automatique après une courte pénalité de 2 secondes
+                        setTimeout(() => {
+                            if (systemeActif && modeActuel === 'reaction') lancerSequenceReaction();
+                        }, 2000);
                     }
                     return; 
                 }
@@ -419,14 +432,14 @@
                         statut.innerText = "💥 IMPACT !";
                         statut.style.color = "#ff3366";
 
-                        // Calcul immédiat du temps de réaction dès le premier choc détecté
                         let tempsReactionCalcule = 0;
                         if (modeActuel === 'reaction') {
                             tempsReactionCalcule = (performance.now() - tempsSignal) / 1000;
                         }
 
                         setTimeout(() => {
-                            let scoreArrondi = parseFloat(maxImpact.toFixed(1));
+                            // ARRONDISSEMENT SANS VIRGULE (Entier le plus proche)
+                            let scoreArrondi = Math.round(maxImpact); 
                             affichageScore.innerText = scoreArrondi;
                             
                             if (modeActuel === 'reaction') {
@@ -443,7 +456,7 @@
                                 annoncerTexte(scoreArrondi.toString());
                             }
 
-                            // Enregistrement dans l'historique
+                            // Enregistrement historique
                             compteurCoups++;
                             historiqueCoups.unshift({
                                 numero: compteurCoups,
@@ -461,19 +474,17 @@
                                 return `<li><span>Coup n°${coup.numero}</span> <b>${details}</b></li>`;
                             }).join('');
 
-                            // Fin de la fenêtre d'impact et gestion de l'anti-rebond
+                            // Anti-rebond & relance automatique
                             setTimeout(() => {
                                 enTrainDeFrapper = false;
-                                if (modeActuel === 'libre') {
-                                    statut.innerText = "En attente du coup suivant...";
-                                    statut.style.color = "#00ffcc";
-                                } else {
-                                    sequenceEnCours = false;
-                                    signalDonne = false;
-                                    btnConfig.disabled = false;
-                                    btnConfig.innerText = "RELANCER UN TEST";
-                                    statut.innerText = "Analyse terminée ! Prêt pour le suivant.";
-                                    statut.style.color = "#00ffcc";
+                                if (systemeActif) {
+                                    if (modeActuel === 'libre') {
+                                        statut.innerText = "En attente du coup suivant...";
+                                        statut.style.color = "#00ffcc";
+                                    } else {
+                                        // BOUCLE AUTOMATIQUE : On relance l'attente du signal suivant
+                                        lancerSequenceReaction();
+                                    }
                                 }
                             }, tempsAttenteAntiRebond);
 
